@@ -1,0 +1,697 @@
+
+Claude finished the response
+
+Activity Report-June 2026.xlsx
+xlsx
+
+I need to know entry for each employee on each day, mapped it to the nearest shift start (6:00 AM, 2:00 PM, or 10:00 PM), and considered it adherent if the first entry was within ±15 minutes of the shift start time.
+
+
+Architected employee shift adherence tracking system
+Architected employee shift adherence tracking system
+Good, both are DD-MM-2026 / M/D/2026 (June 2026, unambiguous since month=6 fixed in one and day=06 fixed in other could overlap only for day 6... let me verify no ambiguity, then parse properly.
+
+
+Verified entries and assessed shift adherence within tolerance windows
+Verified entries and assessed shift adherence within tolerance windows
+Now let me build the output workbook using openpyxl per the skill guidance.
+
+
+Ran 4 commands
+Ran 4 commands
+The formulas recalculated correctly and match the Python analysis. Here's the summary:
+
+I analyzed the badge access log (2,790 events, 10 employees, June 1–30, 2026). Only "granted entry" events were treated as door entries (excluding exits, denied-access, passback, and admin log entries). For each employee-day, I took the first entry event, matched it to the nearest of the three shift starts (6:00 AM / 2:00 PM / 10:00 PM), and flagged it adherent if within ±15 minutes.
+
+Overall: 131 of 223 employee-days (58.7%) were adherent. The report has two tabs:
+
+Daily Adherence — every employee/date row with first entry time, nearest shift, minute deviation, and Yes/No adherence (color-coded)
+Summary by Employee — adherence rate per employee, with live COUNTIFS formulas (recalculates if you edit the detail tab)
+Adherence ranged widely — Sadasivan (78%) and Jayakumari (81%) on the high end, vs. Rajasekharan Nair (32%) and Raj (39%) on the low end.
+
+
+Presented file
+Presented file
+One thing worth flagging: a few first-entries landed near midnight (e.g., 1:17 AM), which get compared only to same-day shift starts — so they show as far off nearest shift rather than being linked to the prior day's 10 PM shift. Let me know if you'd like that logic adjusted to treat overnight shifts as spanning midnight instead.
+
+
+Shift adherence report june 2026
+Spreadsheet · XLSX 
+
+Activity Report-June 2026.xlsx
+xlsx
+
+i see discrepancy with the report please recalculate based on 1-If entry is before 6 AM its entry of previous day Ambili Sasikumar, Arathi Ambili Sasikumar    298905    6/5/2026 6:38:13 AM    "Ambili Sasikumar, Arathi Ambili Sasikumar exited to UST CAMPUS LOBBY A WING NORTH FLAP DOOR 1  EXIT through UST CAMPUS LOBBY A WING NORTH FLAP1 EXIT. Card number (57663)" Ambili Sasikumar, Arathi Ambili Sasikumar    298905    6/5/2026 9:44:22 PM    "Ambili Sasikumar, Arathi Ambili Sasikumar was granted entry into UST CAMPUS LOBBY A WING NORTH FLAP DOOR 3  ENTRY through UST CAMPUS LOBBY A WING NORTH FLAP 3 ENTRY. Card number (57663)" Given the example here ENTRY through is the first swap of the day for that employee and EXIT through was previous day last swap entry. Can you check and correct the Report
+
+Show more
+
+Recalibrated shift-day logic to correctly reassign pre-6AM entries backward
+Recalibrated shift-day logic to correctly reassign pre-6AM entries backward
+That makes sense — the badge system logs continuous overnight activity, so a swipe before 6 AM is really the tail end of the previous day's (night) shift, not a new entry. Let me rebuild with a proper "shift-day" window: 6:00 AM to 5:59 AM the next day.
+
+
+Recompute with shift-day (6AM cutoff) logic
+Recompute with shift-day (6AM cutoff) logic
+This matches your example exactly — 21:44:22 on 6/5 is now correctly picked as that day's first entry (the earlier 2–5 AM swipes on 6/5 rolled into 6/4's shift-day). Now let me rebuild the workbook with this corrected logic.
+
+
+Ran 3 commands
+Ran 3 commands
+Fixed and verified. Overall adherence moved from 58.7% → 63.9% (138 of 216 shift-days), and this matches the exact scenario you flagged — for Ambili Sasikumar on 6/5, the report now correctly picks the 9:44:22 PM entry (not an earlier pre-6AM swipe) as that day's first entry.
+
+What changed: a "shift-day" now runs 6:00 AM → 5:59 AM the next calendar day. Any entry swipe before 6 AM is folded into the previous day's shift-day, since it's really the continuation of an overnight (10 PM) shift rather than a fresh entry. Per-employee adherence shifted noticeably for several people (e.g., Ambili Sasikumar 52%→89%, Prathapraj Jalu 50%→89%), since their pre-6AM overnight swipes were previously being miscounted as separate late/early "first entries" for the wrong day.
+
+
+Presented file
+Presented file
+Let me know if this looks right now, or if there's other logic you'd like adjusted (e.g., how the ±15 min window is applied at the exact boundary, or how multiple entries clustered close together should be handled).
+
+
+Shift adherence report june 2026
+Spreadsheet · XLSX 
+
+Ran 5 commands
+Ran 5 commands
+Now let me build this as a standalone app you can reopen and reuse every month.
+
+
+Build the Shift Adherence Report generator as a standalone HTML app
+Build the Shift Adherence Report generator as a standalone HTML app
+Let me test it against last month's actual file to make sure the numbers match what we verified earlier.
+
+
+Ran 2 commands
+Ran 2 commands
+Good, node is available. Let me export the raw rows and run the exact JS logic from the app against them to cross-check against the verified Python results.
+
+
+Ran 2 commands, created a file
+Ran 2 commands, created a file
+Matches exactly: 216 shift-days, 138 adherent, Ambili Sasikumar 18/16 — identical to the verified Python output. The app's logic is confirmed correct. Now let's copy it to outputs.
+
+
+Copy app to outputs directory
+Copy app to outputs directory
+I built it as a self-contained HTML app — a single file you can save and reopen every month, no server needed.
+
+How it works:
+
+Drop or click to upload the badge activity export (.xlsx)
+It auto-detects the columns (Cardholder Name, Emp. Id, Occurrence Time, Event Full Description), parses both timestamp formats, and applies the exact logic we validated together — shift-day rolling at 6 AM, nearest-shift matching, ±15 min adherence window
+You get an on-screen summary (overall adherence %, per-employee bars) and a "Download report" button that generates the same two-sheet Excel workbook (Daily Adherence + Summary by Employee) as before
+I cross-checked the app's JS logic line-for-line against the Python analysis on your actual June file — both produced identical results (216 shift-days, 138 adherent, and the Ambili Sasikumar case matching exactly).
+
+
+Presented file
+Presented file
+A few notes for monthly use:
+
+Just save this HTML file somewhere handy (desktop, shared drive) and open it in a browser each month — no install needed.
+It works with any month's file as long as the column headers stay the same; the output filename auto-adjusts (e.g. Shift_Adherence_Report-July_2026.xlsx).
+Everything runs locally in your browser — the file never leaves your machine.
+
+Shift adherence app
+Code · HTML 
+Can you share me a word document called Help Manual on How to use this application
+
+
+Viewed 7 files, ran 3 commands, created a file
+Viewed 7 files, ran 3 commands, created a file
+This looks clean and well-organized. Let me finalize it into outputs.
+
+
+Copy final help manual to outputs
+Copy final help manual to outputs
+I put together a Help Manual covering everything needed to use the app month to month:
+
+Overview — what the app does and that it runs entirely locally (no data upload)
+What you need — browser, internet for first load, required file columns
+Opening the app — where to save it, how to launch it
+Generating a report — step-by-step: upload → processing → review → download
+Understanding the report — column-by-column explanation of both sheets
+The 6 AM shift-day rule — plain-language explanation of why overnight swipes roll into the previous day, with the worked example
+Troubleshooting — common error messages and what to do about each
+FAQ — data privacy, adjusting the window, changing months, etc.
+
+Presented file
+Presented file
+Worth keeping this manual alongside the app file each month — if you ever hand this off to someone else on the team, they'll have everything they need to run it without you.
+
+
+Shift adherence app help manual
+Document · DOCX 
+
+
+
+
+
+
+Claude is AI and can make mistakes. Please double-check responses.
+
+
+Shift adherence app · HTML
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+  :root {
+    --ink: #1b2027;
+    --ink-soft: #545e6b;
+    --ink-faint: #8892a0;
+    --paper: #f6f4ee;
+    --card: #ffffff;
+    --line: #e2ded2;
+    --amber: #b9791f;
+    --amber-dim: #f2e2c6;
+    --teal: #0f6e56;
+    --teal-dim: #dcefe6;
+    --red: #a32d2d;
+    --red-dim: #f7dede;
+    --mono: 'IBM Plex Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  .sa-app {
+    font-family: var(--sans);
+    color: var(--ink);
+    background: var(--paper);
+    border-radius: 14px;
+    padding: 28px 30px 32px;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  .sa-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .sa-badge-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .sa-badge-icon svg { width: 22px; height: 22px; }
+  .sa-title { font-size: 19px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+  .sa-sub { font-size: 13px; color: var(--ink-soft); margin: 2px 0 0; }
+  .sa-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .sa-drop {
+    border: 1.5px dashed #c9c2ae;
+    border-radius: 10px;
+    padding: 34px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .sa-drop:hover, .sa-drop.dragover { border-color: var(--amber); background: #fbf7ee; }
+  .sa-drop-icon { width: 30px; height: 30px; margin: 0 auto 10px; color: var(--ink-faint); }
+  .sa-drop-title { font-size: 14px; font-weight: 600; margin: 0 0 4px; }
+  .sa-drop-sub { font-size: 12.5px; color: var(--ink-faint); margin: 0; }
+  .sa-file-input { display: none; }
+  .sa-filerow {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--ink-soft);
+    margin-top: 12px;
+  }
+  .sa-filerow .name { font-family: var(--mono); font-size: 12.5px; color: var(--ink); }
+  .sa-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13.5px; font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .sa-btn:hover { border-color: #c9c2ae; }
+  .sa-btn.primary {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .sa-btn.primary:hover { background: #303842; }
+  .sa-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .sa-btn svg { width: 15px; height: 15px; }
+  .sa-status {
+    font-size: 12.5px; color: var(--ink-faint);
+    margin-top: 10px;
+    font-family: var(--mono);
+  }
+  .sa-error {
+    background: var(--red-dim); color: var(--red);
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 13px; margin-top: 12px;
+  }
+  .sa-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .sa-stat { background: var(--paper); border-radius: 9px; padding: 13px 14px; }
+  .sa-stat-label { font-size: 11.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.03em; margin: 0 0 4px; }
+  .sa-stat-value { font-family: var(--mono); font-size: 21px; font-weight: 600; margin: 0; }
+  .sa-stat-value.ok { color: var(--teal); }
+  .sa-section-title { font-size: 13px; font-weight: 600; color: var(--ink-soft); margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .sa-emp-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+  .sa-emp-row:last-child { border-bottom: none; }
+  .sa-emp-name { font-size: 13px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sa-emp-bar-track { width: 130px; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+  .sa-emp-bar-fill { height: 100%; background: var(--teal); }
+  .sa-emp-bar-fill.low { background: var(--red); }
+  .sa-emp-bar-fill.mid { background: var(--amber); }
+  .sa-emp-pct { font-family: var(--mono); font-size: 12.5px; width: 42px; text-align: right; flex-shrink: 0; }
+  .sa-download-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
+  .sa-download-note { font-size: 12px; color: var(--ink-faint); }
+  .sa-reset { font-size: 12.5px; color: var(--ink-faint); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; background: none; border: none; padding: 0; }
+  .sa-hidden { display: none !important; }
+  .sa-spin { animation: sa-spin 0.8s linear infinite; }
+  @keyframes sa-spin { to { transform: rotate(360deg); } }
+</style>
+ 
+<div class="sa-app">
+  <div class="sa-header">
+    <div class="sa-badge-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#f2e2c6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M12 7v5l3 2"></path>
+      </svg>
+    </div>
+    <div>
+      <p class="sa-title">Shift adherence report</p>
+      <p class="sa-sub">Upload the monthly badge activity export &middot; get a scored report back</p>
+    </div>
+  </div>
+ 
+  <div class="sa-card">
+    <div id="saDrop" class="sa-drop">
+      <svg class="sa-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v12"></path>
+        <path d="M7 8l5-5 5 5"></path>
+        <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path>
+      </svg>
+      <p class="sa-drop-title">Drop the activity report here</p>
+      <p class="sa-drop-sub">or click to browse &middot; .xlsx with Cardholder Name, Emp. Id, Occurrence Time, Event Full Description</p>
+    </div>
+    <input type="file" id="saFileInput" class="sa-file-input" accept=".xlsx,.xls" />
+    <div id="saFileRow" class="sa-filerow sa-hidden">
+      <span class="name" id="saFileName"></span>
+      <button class="sa-reset" id="saResetBtn">choose a different file</button>
+    </div>
+    <div id="saStatus" class="sa-status sa-hidden"></div>
+    <div id="saError" class="sa-error sa-hidden"></div>
+  </div>
+ 
+  <div id="saResults" class="sa-hidden">
+    <div class="sa-card">
+      <p class="sa-section-title">Overview</p>
+      <div class="sa-stats">
+        <div class="sa-stat">
+          <p class="sa-stat-label">Shift-days scored</p>
+          <p class="sa-stat-value" id="saStatDays">&mdash;</p>
+        </div>
+        <div class="sa-stat">
+          <p class="sa-stat-label">Overall adherence</p>
+          <p class="sa-stat-value ok" id="saStatPct">&mdash;</p>
+        </div>
+        <div class="sa-stat">
+          <p class="sa-stat-label">Employees</p>
+          <p class="sa-stat-value" id="saStatEmp">&mdash;</p>
+        </div>
+      </div>
+    </div>
+ 
+    <div class="sa-card">
+      <p class="sa-section-title">By employee</p>
+      <div id="saEmpList"></div>
+    </div>
+ 
+    <div class="sa-card">
+      <div class="sa-download-row">
+        <div>
+          <button class="sa-btn primary" id="saDownloadBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M4 19h16"></path></svg>
+            Download report
+          </button>
+          <p class="sa-download-note" id="saDownloadName"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<script>
+(function () {
+  var dropEl = document.getElementById('saDrop');
+  var fileInput = document.getElementById('saFileInput');
+  var fileRow = document.getElementById('saFileRow');
+  var fileNameEl = document.getElementById('saFileName');
+  var resetBtn = document.getElementById('saResetBtn');
+  var statusEl = document.getElementById('saStatus');
+  var errorEl = document.getElementById('saError');
+  var resultsEl = document.getElementById('saResults');
+  var downloadBtn = document.getElementById('saDownloadBtn');
+  var downloadNameEl = document.getElementById('saDownloadName');
+ 
+  var reportWorkbookBuffer = null;
+  var reportFileName = 'Shift_Adherence_Report.xlsx';
+ 
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+ 
+  function showError(msg) {
+    errorEl.textContent = msg;
+    errorEl.classList.remove('sa-hidden');
+  }
+  function clearError() {
+    errorEl.classList.add('sa-hidden');
+    errorEl.textContent = '';
+  }
+  function setStatus(msg) {
+    if (!msg) { statusEl.classList.add('sa-hidden'); return; }
+    statusEl.textContent = msg;
+    statusEl.classList.remove('sa-hidden');
+  }
+ 
+  dropEl.addEventListener('click', function () { fileInput.click(); });
+  dropEl.addEventListener('dragover', function (e) { e.preventDefault(); dropEl.classList.add('dragover'); });
+  dropEl.addEventListener('dragleave', function () { dropEl.classList.remove('dragover'); });
+  dropEl.addEventListener('drop', function (e) {
+    e.preventDefault();
+    dropEl.classList.remove('dragover');
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', function () {
+    if (fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0]);
+  });
+  resetBtn.addEventListener('click', function () {
+    fileInput.value = '';
+    fileRow.classList.add('sa-hidden');
+    resultsEl.classList.add('sa-hidden');
+    setStatus('');
+    clearError();
+    dropEl.classList.remove('sa-hidden');
+  });
+ 
+  function normalizeHeader(h) {
+    return String(h || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+ 
+  function parseDateTime(raw) {
+    if (raw === null || raw === undefined) return null;
+    var s = String(raw).trim();
+    if (s.indexOf('/') !== -1) {
+      var m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})\s*([AaPp][Mm])$/);
+      if (!m) return null;
+      var mo = parseInt(m[1], 10), da = parseInt(m[2], 10), yr = parseInt(m[3], 10);
+      var hh = parseInt(m[4], 10), mi = parseInt(m[5], 10), ss = parseInt(m[6], 10);
+      var ap = m[7].toUpperCase();
+      if (ap === 'PM' && hh !== 12) hh += 12;
+      if (ap === 'AM' && hh === 12) hh = 0;
+      return new Date(yr, mo - 1, da, hh, mi, ss);
+    } else if (s.indexOf('-') !== -1) {
+      var m2 = s.match(/^(\d{2})-(\d{2})-(\d{4})\s+(\d{2}):(\d{2}):(\d{2})$/);
+      if (!m2) return null;
+      return new Date(parseInt(m2[3], 10), parseInt(m2[2], 10) - 1, parseInt(m2[1], 10), parseInt(m2[4], 10), parseInt(m2[5], 10), parseInt(m2[6], 10));
+    }
+    return null;
+  }
+ 
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+  function dateKey(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function fmtDateTime(d) {
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' +
+      pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
+  }
+ 
+  function handleFile(file) {
+    clearError();
+    resultsEl.classList.add('sa-hidden');
+    fileNameEl.textContent = file.name;
+    fileRow.classList.remove('sa-hidden');
+    dropEl.classList.add('sa-hidden');
+    setStatus('Reading file...');
+ 
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        var data = new Uint8Array(e.target.result);
+        var wb = XLSX.read(data, { type: 'array' });
+        var sheetName = wb.SheetNames[0];
+        var sheet = wb.Sheets[sheetName];
+        var rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
+        if (!rows || rows.length < 2) { showError('The file has no data rows to process.'); setStatus(''); return; }
+ 
+        var headerRow = rows[0];
+        var colIdx = { name: -1, empId: -1, time: -1, desc: -1 };
+        headerRow.forEach(function (h, i) {
+          var n = normalizeHeader(h);
+          if (n === 'cardholdername') colIdx.name = i;
+          else if (n === 'empid') colIdx.empId = i;
+          else if (n === 'occurrencetime') colIdx.time = i;
+          else if (n === 'eventfulldescription') colIdx.desc = i;
+        });
+        if (colIdx.name === -1 || colIdx.empId === -1 || colIdx.time === -1 || colIdx.desc === -1) {
+          showError('Could not find the expected columns (Cardholder Name, Emp. Id, Occurrence Time, Event Full Description). Check the file headers and try again.');
+          setStatus('');
+          return;
+        }
+ 
+        setStatus('Processing ' + (rows.length - 1) + ' events...');
+ 
+        var groups = {};
+        var parseFailures = 0;
+ 
+        for (var r = 1; r < rows.length; r++) {
+          var row = rows[r];
+          if (!row || row.length === 0) continue;
+          var desc = String(row[colIdx.desc] || '');
+          if (desc.toLowerCase().indexOf('granted entry') === -1) continue;
+ 
+          var dt = parseDateTime(row[colIdx.time]);
+          if (!dt) { parseFailures++; continue; }
+ 
+          var empId = String(row[colIdx.empId] || '').trim();
+          var name = String(row[colIdx.name] || '').trim();
+          if (!empId || !name) continue;
+ 
+          var shiftDayDate = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+          if (dt.getHours() < 6) shiftDayDate.setDate(shiftDayDate.getDate() - 1);
+ 
+          var key = empId + '||' + dateKey(shiftDayDate);
+          if (!groups[key] || dt < groups[key].minDt) {
+            groups[key] = { empId: empId, name: name, shiftDay: shiftDayDate, minDt: dt };
+          }
+        }
+ 
+        var shiftHours = [6, 14, 22];
+        var results = [];
+        Object.keys(groups).forEach(function (key) {
+          var g = groups[key];
+          var best = null;
+          shiftHours.forEach(function (h) {
+            var shiftDt = new Date(g.shiftDay.getFullYear(), g.shiftDay.getMonth(), g.shiftDay.getDate(), h, 0, 0);
+            var diffMin = (g.minDt - shiftDt) / 60000;
+            if (best === null || Math.abs(diffMin) < Math.abs(best.diff)) best = { hour: h, diff: diffMin };
+          });
+          results.push({
+            empId: g.empId,
+            name: g.name,
+            shiftDay: g.shiftDay,
+            firstEntry: g.minDt,
+            nearestShift: pad2(best.hour) + ':00',
+            diffMinutes: Math.round(best.diff * 100) / 100,
+            adherent: Math.abs(best.diff) <= 15
+          });
+        });
+ 
+        if (results.length === 0) {
+          showError('No "granted entry" badge events were found in this file.');
+          setStatus('');
+          return;
+        }
+ 
+        results.sort(function (a, b) {
+          if (a.name !== b.name) return a.name < b.name ? -1 : 1;
+          return a.shiftDay - b.shiftDay;
+        });
+ 
+        setStatus('Building report...');
+        buildReport(results, parseFailures);
+ 
+      } catch (err) {
+        showError('Something went wrong reading this file: ' + err.message);
+        setStatus('');
+      }
+    };
+    reader.onerror = function () {
+      showError('Could not read the file.');
+      setStatus('');
+    };
+    reader.readAsArrayBuffer(file);
+  }
+ 
+  function buildReport(results, parseFailures) {
+    var empMap = {};
+    results.forEach(function (r) {
+      var k = r.empId + '||' + r.name;
+      if (!empMap[k]) empMap[k] = { empId: r.empId, name: r.name, total: 0, adherent: 0 };
+      empMap[k].total++;
+      if (r.adherent) empMap[k].adherent++;
+    });
+    var empList = Object.keys(empMap).map(function (k) { return empMap[k]; });
+    empList.sort(function (a, b) { return a.name < b.name ? -1 : 1; });
+ 
+    var totalDays = results.length;
+    var totalAdherent = results.filter(function (r) { return r.adherent; }).length;
+    var overallPct = totalDays ? (totalAdherent / totalDays * 100) : 0;
+ 
+    document.getElementById('saStatDays').textContent = totalDays;
+    document.getElementById('saStatPct').textContent = overallPct.toFixed(1) + '%';
+    document.getElementById('saStatEmp').textContent = empList.length;
+ 
+    var listEl = document.getElementById('saEmpList');
+    listEl.innerHTML = '';
+    empList.forEach(function (emp) {
+      var pct = emp.total ? (emp.adherent / emp.total * 100) : 0;
+      var barClass = pct >= 70 ? '' : (pct >= 45 ? 'mid' : 'low');
+      var row = document.createElement('div');
+      row.className = 'sa-emp-row';
+      row.innerHTML =
+        '<span class="sa-emp-name">' + escapeHtml(emp.name) + '</span>' +
+        '<span class="sa-emp-bar-track"><span class="sa-emp-bar-fill ' + barClass + '" style="width:' + Math.max(pct, 2).toFixed(0) + '%"></span></span>' +
+        '<span class="sa-emp-pct">' + pct.toFixed(0) + '%</span>';
+      listEl.appendChild(row);
+    });
+ 
+    var monthDates = results.map(function (r) { return r.shiftDay; });
+    var minD = new Date(Math.min.apply(null, monthDates));
+    var monthLabel = MONTHS[minD.getMonth()] + '_' + minD.getFullYear();
+    reportFileName = 'Shift_Adherence_Report-' + monthLabel + '.xlsx';
+    downloadNameEl.textContent = reportFileName;
+ 
+    var note = "Shift-day runs 6:00 AM to 5:59 AM the next calendar day, so overnight swipes before 6 AM roll into the PRIOR day's shift. " +
+      "Adherent = first badge 'entry' event of that shift-day within \u00b115 min of nearest shift start (06:00, 14:00, or 22:00).";
+    if (parseFailures > 0) {
+      note += ' (' + parseFailures + ' row(s) had an unrecognized timestamp format and were skipped.)';
+    }
+ 
+    generateExcel(results, empList, totalDays, totalAdherent, overallPct, note);
+ 
+    setStatus('');
+    resultsEl.classList.remove('sa-hidden');
+  }
+ 
+  function escapeHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+ 
+  function generateExcel(results, empList, totalDays, totalAdherent, overallPct, note) {
+    var wb = new ExcelJS.Workbook();
+ 
+    var ws1 = wb.addWorksheet('Daily Adherence');
+    ws1.columns = [
+      { header: 'Emp. ID', key: 'empId', width: 10 },
+      { header: 'Employee Name', key: 'name', width: 40 },
+      { header: 'Shift Day', key: 'shiftDay', width: 14 },
+      { header: 'First Entry Time', key: 'firstEntry', width: 20 },
+      { header: 'Nearest Shift', key: 'nearestShift', width: 13 },
+      { header: 'Diff (min)', key: 'diff', width: 12 },
+      { header: 'Adherent', key: 'adherent', width: 10 }
+    ];
+    styleHeaderRow(ws1.getRow(1));
+ 
+    results.forEach(function (r) {
+      var row = ws1.addRow({
+        empId: r.empId,
+        name: r.name,
+        shiftDay: r.shiftDay,
+        firstEntry: r.firstEntry,
+        nearestShift: r.nearestShift,
+        diff: r.diffMinutes,
+        adherent: r.adherent ? 'Yes' : 'No'
+      });
+      row.getCell('shiftDay').numFmt = 'dd-mmm-yyyy';
+      row.getCell('firstEntry').numFmt = 'dd-mmm-yyyy hh:mm:ss';
+      row.getCell('diff').numFmt = '0.0';
+      var aCell = row.getCell('adherent');
+      aCell.font = { bold: true };
+      aCell.alignment = { horizontal: 'center' };
+      aCell.fill = {
+        type: 'pattern', pattern: 'solid',
+        fgColor: { argb: r.adherent ? 'FFC6EFCE' : 'FFFFC7CE' }
+      };
+    });
+    ws1.views = [{ state: 'frozen', ySplit: 1 }];
+ 
+    var ws2 = wb.addWorksheet('Summary by Employee');
+    ws2.columns = [
+      { header: 'Emp. ID', key: 'empId', width: 10 },
+      { header: 'Employee Name', key: 'name', width: 40 },
+      { header: 'Total Shift-Days Recorded', key: 'total', width: 24 },
+      { header: 'Adherent Days', key: 'adherent', width: 15 },
+      { header: 'Non-Adherent Days', key: 'nonAdherent', width: 18 },
+      { header: 'Adherence %', key: 'pct', width: 13 }
+    ];
+    styleHeaderRow(ws2.getRow(1));
+ 
+    empList.forEach(function (emp) {
+      var row = ws2.addRow({
+        empId: emp.empId,
+        name: emp.name,
+        total: emp.total,
+        adherent: emp.adherent,
+        nonAdherent: emp.total - emp.adherent,
+        pct: emp.total ? emp.adherent / emp.total : 0
+      });
+      row.getCell('pct').numFmt = '0.0%';
+    });
+ 
+    var totalRow = ws2.addRow({
+      empId: '', name: 'TOTAL',
+      total: totalDays, adherent: totalAdherent,
+      nonAdherent: totalDays - totalAdherent,
+      pct: totalDays ? totalAdherent / totalDays : 0
+    });
+    totalRow.font = { bold: true };
+    totalRow.getCell('pct').numFmt = '0.0%';
+ 
+    ws2.addRow([]);
+    var noteRow = ws2.addRow([note]);
+    noteRow.getCell(1).font = { italic: true, size: 9 };
+    ws2.mergeCells(noteRow.number, 1, noteRow.number, 6);
+ 
+    wb.xlsx.writeBuffer().then(function (buf) {
+      reportWorkbookBuffer = buf;
+    });
+  }
+ 
+  function styleHeaderRow(row) {
+    row.eachCell(function (cell) {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF305496' } };
+      cell.alignment = { horizontal: 'center' };
+    });
+  }
+ 
+  downloadBtn.addEventListener('click', function () {
+    if (!reportWorkbookBuffer) return;
+    var blob = new Blob([reportWorkbookBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = reportFileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  });
+})();
+</script>
+ 
+
+
